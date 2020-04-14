@@ -1,11 +1,15 @@
 # -*- coding: UTF-8 -*-
 
-import ida_kernwin
 from idaapi import *
+from idc import *
+from ida_kernwin import *
 from PyQt5.Qt import QApplication
 
 import os
 import worm_base as base
+
+Choose2 = Choose if IDA_SDK_VERSION >= 740 else Choose2
+askfile_c = ask_file if IDA_SDK_VERSION >= 740 else askfile_c
 
 def copyto_clipboard(data):
     print('[WormTools] Copied: ' + data)
@@ -230,7 +234,7 @@ class WormTools(plugin_t):
         base.add_menu_item('Jump/', 'Jump to Offset', 'worm:jumptooffset',
                 base.ActionHandler(jumpto_offset, enable = AST_ENABLE_FOR_IDB), 'Shift+G', 'Jump To Offset')
         base.add_menu_item('Edit/', 'WormTools', 'worm:wormtools',
-                base.ActionHandler(show_wormtools, enable = lambda: SelStart() == BADADDR), 'W', 'WormTools')
+                base.ActionHandler(show_wormtools, enable = lambda: True), 'W', 'WormTools')
         base.add_menu_item('Edit/', 'Name Mappings(~f~)', 'worm:namemap',
                 base.ActionHandler(map_names), tooltip = 'Rename symbols by a table')
 
