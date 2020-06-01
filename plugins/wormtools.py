@@ -3,6 +3,7 @@
 from idaapi import *
 from idc import *
 from ida_kernwin import *
+from ida_segment import *
 from PyQt5.Qt import QApplication
 
 import os
@@ -20,8 +21,11 @@ def jumpto_offset(*args):
     if addr:
         jumpto(get_imagebase() + addr)
 
+try: SegName
+except NameError: SegName = lambda ea: get_segm_name(getseg(ea))
+
 # load a *.map file
-def load_map():
+def load_map(*args):
     path = askfile_c(False, '*.map', 'Open a *.map file')
     if path == None:
         return
@@ -34,24 +38,21 @@ def load_map():
     for line in open(path, 'r'):
         t = line.split()
         if len(t) > 3 and '0' in t[0]:
-            try:
-                ea = int(t[2], 16)
-                if ea != 0:
-                    # ignore the function in then .idata segment
-                    if SegName(ea) == '.idata':
-                        name = get_name(ea)
-                        if name:
-                            print('| Ignore Import Name: ' + name)
-                            continue
-                    function_name = t[1].replace('<','_').replace('>','_').replace('\\','_')
-                    if collision.has_key(function_name):
-                        collision[function_name].append(ea)
-                        set_name(ea, function_name + '_' + str(len(collision[function_name])), SN_NOWARN)
-                    else:
-                        collision[function_name] = []
-                        set_name(ea, function_name, SN_NOWARN)
-            except Exception as e:
-                pass
+            ea = int(t[2], 16)
+            if ea != 0:
+                # ignore the function in then .idata segment
+                if SegName(ea) == '.idata':
+                    name = get_name(ea)
+                    if name:
+                        print('| Ignore Import Name: ' + name)
+                        continue
+                function_name = t[1].replace('<','_').replace('>','_').replace('\\','_')
+                if collision.has_key(function_name):
+                    collision[function_name].append(ea)
+                    set_name(ea, function_name + '_' + str(len(collision[function_name])), SN_NOWARN)
+                else:
+                    collision[function_name] = []
+                    set_name(ea, function_name, SN_NOWARN)
     print('+------------- Load Map: End --------------')
 
 def map_names(*args):
