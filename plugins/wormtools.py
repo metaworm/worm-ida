@@ -113,7 +113,7 @@ WormTools
 跳转：
     <##(~H~)函数头:{btn_funchead}> <##(~T~)函数尾:{btn_functail}>
 其他：
-    <## Load~M~ap :{btn_loadmap}> <## Map~N~ame :{btn_mapname}> <## ~S~ettings :{btn_settings}>
+    <## Load~M~ap :{btn_loadmap}> <## Map~N~ame :{btn_mapname}> <##(~1~)PatchNOP:{btn_patchnop}> <## ~S~ettings :{btn_settings}>
         """, {
             'btn_word': Form.ButtonInput(self.on_word),
             'btn_address': Form.ButtonInput(self.on_address),
@@ -125,6 +125,7 @@ WormTools
             'btn_loadmap': Form.ButtonInput(self.on_loadmap),
             'btn_mapname': Form.ButtonInput(self.on_mapname),
             'btn_settings': Form.ButtonInput(self.on_settings),
+            'btn_patchnop': Form.ButtonInput(self.on_patchnop),
         })
 
     def on_word(self, code = 0):
@@ -178,6 +179,11 @@ WormTools
     def on_settings(self, code = 0):
         self.Close(0)
         show_settings()
+
+    def on_patchnop(self, code = 0):
+        from ida_bytes import patch_bytes
+        patch_bytes(here(), '\x90' * get_item_size(here()))
+        self.Close(0)
 
 def show_wormtools(*args):
     form = WormForm()
