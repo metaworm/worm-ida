@@ -1,24 +1,25 @@
-import os
 import random
 import string
 import logging
 import contextlib
 
 import idaapi
-import pytest
 
-import netnode
+from netnode import netnode
 
 # get the IDA version number
-ida_major, ida_minor = map(int, idaapi.get_kernel_version().split("."))
+ida_major, ida_minor = list(map(int, idaapi.get_kernel_version().split(".")))
 using_ida7api = (ida_major > 6)
-
 
 
 TEST_NAMESPACE = '$ some.namespace'
 
 
 def get_random_data(N):
+    '''
+    returns:
+      str: a string containing N ASCII characters.
+    '''
     return ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(N))
 
 
@@ -54,13 +55,13 @@ def test_basic_features():
         # then when we add a second thing, its also there
         n['2'] = 'world'
         assert(True == ('2' in n))
-        assert(len(n.keys()) == 2)
-        assert(n.keys()[0] == 1)
-        assert(n.keys()[1] == '2')
-        assert(len(n.values()) == 2)
-        assert(n.values()[0] == 'hello')
-        assert(n.values()[1] == 'world')
-        assert(len(n.items()) == 2)
+        assert(len(list(n.keys())) == 2)
+        assert(list(n.keys())[0] == 1)
+        assert(list(n.keys())[1] == '2')
+        assert(len(list(n.values())) == 2)
+        assert(list(n.values())[0] == 'hello')
+        assert(list(n.values())[1] == 'world')
+        assert(len(list(n.items())) == 2)
 
         # and when we delete the first item, only it is deleted
         del n[1]
@@ -78,10 +79,12 @@ def test_large_data():
         random_data = get_random_data(1024 * 8)
         n[3] = random_data
         assert(n[3] == random_data)
+        del n[3]
+        assert(dict(n) == {})
 
 
 def test_hash_ordering():
-    ''' 
+    '''
     the following demonstrates that 'hashes' are iterated alphabetically.
     this is an IDAPython implementation feature.
     '''
@@ -105,13 +108,13 @@ def test_hash_ordering():
         def get_hash_order(hiter):
             return [k for k in hiter]
 
-        m.hashset('a', 'a')
+        m.hashset('a', b'a')
         assert get_hash_order(hashiter(m)) == ['a']
 
-        m.hashset('c', 'c')
+        m.hashset('c', b'c')
         assert get_hash_order(hashiter(m)) == ['a', 'c']
 
-        m.hashset('b', 'b')
+        m.hashset('b', b'b')
         assert get_hash_order(hashiter(m)) == ['a', 'b', 'c']
 
 
@@ -119,8 +122,8 @@ def test_iterkeys():
     LARGE_VALUE = get_random_data(16 * 1024)
     LARGE_VALUE2 = get_random_data(16 * 1024)
     import zlib
-    assert(zlib.compress(LARGE_VALUE) > 1024)
-    assert(zlib.compress(LARGE_VALUE2) > 1024)
+    assert(len(zlib.compress(LARGE_VALUE.encode("ascii"))) > 1024)
+    assert(len(zlib.compress(LARGE_VALUE2.encode("ascii"))) > 1024)
 
     assert LARGE_VALUE != LARGE_VALUE2
 
@@ -141,7 +144,7 @@ def test_iterkeys():
         assert set(n.keys()) == set(['one', 'two'])
 
         assert n['one'] != n['two']
-        
+
     with killing_netnode(TEST_NAMESPACE) as n:
         n[1] = LARGE_VALUE
         assert set(n.keys()) == set([1])
@@ -157,10 +160,10 @@ def test_iterkeys():
 
         n[3] = "A"
         assert set(n.keys()) == set([1, 2, 'one', 'two', 3])
- 
+
         n['three'] = "A"
         assert set(n.keys()) == set([1, 2, 'one', 'two', 3, 'three'])
- 
+
 
 def main():
     logging.basicConfig(level=logging.DEBUG)
@@ -168,7 +171,13 @@ def main():
     # cleanup any existing data
     netnode.Netnode(TEST_NAMESPACE).kill()
 
-    pytest.main(['--capture=sys', os.path.dirname(__file__)])
+    # rely on assert crashing the interpreter to indicate failure.
+    # pytest no longer works on py3 idapython.
+    test_basic_features()
+    test_large_data()
+    test_hash_ordering()
+    test_iterkeys()
+    print("netnode: tests: pass")
 
 
 if __name__ == '__main__':

@@ -155,7 +155,7 @@ WormTools
     def on_funchead(self, code = 0):
         addr = get_func_attr(here(), FUNCATTR_START)
         if addr == BADADDR:
-            print 'FUNCATTR_START NOT FOUND'
+            print('FUNCATTR_START NOT FOUND')
         else:
             jumpto(addr)
         self.Close(0)
@@ -163,7 +163,7 @@ WormTools
     def on_functail(self, code = 0):
         addr = get_func_attr(here(), FUNCATTR_END)
         if addr == BADADDR:
-            print 'FUNCATTR_END NOT FOUND'
+            print('FUNCATTR_END NOT FOUND')
         else:
             jumpto(addr)
         self.Close(0)
