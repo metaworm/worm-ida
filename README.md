@@ -16,6 +16,8 @@ IDA实用插件，需**IDA 7.0**及以上版本。
 
 安装完成后，打开一个IDB，在IDA-View下按`W`键触发功能选择框，点击对应按钮或加速键执行对应功能。
 
+![](./screenshot.png)
+
 ## 致谢
 
 * williballenthin: https://github.com/williballenthin/ida-netnode
